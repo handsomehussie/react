@@ -1042,7 +1042,9 @@ function detachFiberMutation(fiber: Fiber) {
   fiber.pendingProps = null;
   fiber.return = null;
   fiber.stateNode = null;
-  fiber.updateQueue = null;
+
+  // Don't clear the updateQueue here; it may have pending passive effects.
+
   if (__DEV__) {
     fiber._debugOwner = null;
   }
