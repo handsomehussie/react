@@ -31,7 +31,6 @@ const [
   getNodeFromInstance,
   getFiberCurrentPropsFromNode,
   /* eslint-enable no-unused-vars */
-  eventNameDispatchConfigs,
   enqueueStateRestore,
   restoreStateIfNeeded,
   /* eslint-disable no-unused-vars */
@@ -492,14 +491,16 @@ function getListener(inst: Fiber, registrationName: string) {
 }
 
 function listenerAtPhase(inst, event, propagationPhase: PropagationPhases) {
-  const registrationName =
-    event.dispatchConfig.phasedRegistrationNames[propagationPhase];
+  let registrationName = event._reactName;
+  if (propagationPhase === 'captured') {
+    registrationName += 'Capture';
+  }
   return getListener(inst, registrationName);
 }
 
 function accumulateDispatches(inst, ignoredDirection, event) {
-  if (inst && event && event.dispatchConfig.registrationName) {
-    const registrationName = event.dispatchConfig.registrationName;
+  if (inst && event && event._reactName) {
+    const registrationName = event._reactName;
     const listener = getListener(inst, registrationName);
     if (listener) {
       if (event._dispatchListeners == null) {
@@ -534,13 +535,13 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 }
 
 function accumulateDirectDispatchesSingle(event) {
-  if (event && event.dispatchConfig.registrationName) {
+  if (event && event._reactName) {
     accumulateDispatches(event._targetInst, null, event);
   }
 }
 
 function accumulateTwoPhaseDispatchesSingle(event) {
-  if (event && event.dispatchConfig.phasedRegistrationNames) {
+  if (event && event._reactName) {
     traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event);
   }
 }
@@ -548,6 +549,13 @@ function accumulateTwoPhaseDispatchesSingle(event) {
 // End of inline
 
 const Simulate = {};
+
+const directDispatchEventTypes = new Set([
+  'mouseEnter',
+  'mouseLeave',
+  'pointerEnter',
+  'pointerLeave',
+]);
 
 /**
  * Exports:
@@ -571,15 +579,14 @@ function makeSimulator(eventType) {
         'a component instance. Pass the DOM node you wish to simulate the event on instead.',
     );
 
-    const dispatchConfig = eventNameDispatchConfigs[eventType];
-
+    const reactName = 'on' + eventType[0].toUpperCase() + eventType.slice(1);
     const fakeNativeEvent = new Event();
     fakeNativeEvent.target = domNode;
     fakeNativeEvent.type = eventType.toLowerCase();
 
     const targetInst = getInstanceFromNode(domNode);
     const event = new SyntheticEvent(
-      dispatchConfig,
+      reactName,
       targetInst,
       fakeNativeEvent,
       domNode,
@@ -590,10 +597,10 @@ function makeSimulator(eventType) {
     event.persist();
     Object.assign(event, eventData);
 
-    if (dispatchConfig.phasedRegistrationNames) {
-      accumulateTwoPhaseDispatchesSingle(event);
-    } else {
+    if (directDispatchEventTypes.has(eventType)) {
       accumulateDirectDispatchesSingle(event);
+    } else {
+      accumulateTwoPhaseDispatchesSingle(event);
     }
 
     ReactDOM.unstable_batchedUpdates(function() {
@@ -607,17 +614,98 @@ function makeSimulator(eventType) {
   };
 }
 
+// A one-time snapshot with no plans to update. We'll probably want to deprecate Simulate API.
+const simulatedEventTypes = [
+  'blur',
+  'cancel',
+  'click',
+  'close',
+  'contextMenu',
+  'copy',
+  'cut',
+  'auxClick',
+  'doubleClick',
+  'dragEnd',
+  'dragStart',
+  'drop',
+  'focus',
+  'input',
+  'invalid',
+  'keyDown',
+  'keyPress',
+  'keyUp',
+  'mouseDown',
+  'mouseUp',
+  'paste',
+  'pause',
+  'play',
+  'pointerCancel',
+  'pointerDown',
+  'pointerUp',
+  'rateChange',
+  'reset',
+  'seeked',
+  'submit',
+  'touchCancel',
+  'touchEnd',
+  'touchStart',
+  'volumeChange',
+  'drag',
+  'dragEnter',
+  'dragExit',
+  'dragLeave',
+  'dragOver',
+  'mouseMove',
+  'mouseOut',
+  'mouseOver',
+  'pointerMove',
+  'pointerOut',
+  'pointerOver',
+  'scroll',
+  'toggle',
+  'touchMove',
+  'wheel',
+  'abort',
+  'animationEnd',
+  'animationIteration',
+  'animationStart',
+  'canPlay',
+  'canPlayThrough',
+  'durationChange',
+  'emptied',
+  'encrypted',
+  'ended',
+  'error',
+  'gotPointerCapture',
+  'load',
+  'loadedData',
+  'loadedMetadata',
+  'loadStart',
+  'lostPointerCapture',
+  'playing',
+  'progress',
+  'seeking',
+  'stalled',
+  'suspend',
+  'timeUpdate',
+  'transitionEnd',
+  'waiting',
+  'mouseEnter',
+  'mouseLeave',
+  'pointerEnter',
+  'pointerLeave',
+  'change',
+  'select',
+  'beforeInput',
+  'compositionEnd',
+  'compositionStart',
+  'compositionUpdate',
+];
 function buildSimulators() {
-  let eventType;
-  for (eventType in eventNameDispatchConfigs) {
-    /**
-     * @param {!Element|ReactDOMComponent} domComponentOrNode
-     * @param {?object} eventData Fake event data to use in SyntheticEvent.
-     */
+  simulatedEventTypes.forEach(eventType => {
     Simulate[eventType] = makeSimulator(eventType);
-  }
+  });
 }
-
 buildSimulators();
 
 export {
