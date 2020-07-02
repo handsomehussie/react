@@ -2100,31 +2100,18 @@ function commitBeforeMutationEffects(fiber: Fiber) {
   }
 }
 
-function commitBeforeMutationEffectsDeletionsImpl(deletions: Array<Fiber>) {
-  for (let i = 0; i < deletions.length; i++) {
-    const fiber = deletions[i];
-
-    // TODO (effects) It would be nice to avoid calling doesFiberContain()
-    // Maybe we can repurpose one of the subtreeTag positions for this instead?
-    // Use it to store which part of the tree the focused instance is in?
-    // This assumes we can safely determine that instance during the "render" phase.
-
-    if (doesFiberContain(fiber, ((focusedInstanceHandle: any): Fiber))) {
-      shouldFireAfterActiveInstanceBlur = true;
-      beforeActiveInstanceBlur();
-    }
-  }
-}
-
 function commitBeforeMutationEffectsImpl(fiber: Fiber) {
   const current = fiber.alternate;
   const effectTag = fiber.effectTag;
 
   if (!shouldFireAfterActiveInstanceBlur && focusedInstanceHandle !== null) {
-    commitBeforeMutationEffectsDeletionsImpl(fiber.deletions);
-    // TODO (effects) This is kind of crappy
-    if (fiber.return) {
-      commitBeforeMutationEffectsDeletionsImpl(fiber.return.deletions);
+    // The "deletions" array on a Fiber holds previous children that were marked for deletion.
+    // However the overall commit sequence relies on child deletions being processed before parent's effects,
+    // so to satisfy that we also process the parent's "deletions" array (the deletion of siblings).
+    commitBeforeMutationEffectsDeletions(fiber.deletions);
+    const parent = fiber.return;
+    if (parent) {
+      commitBeforeMutationEffectsDeletions(parent.deletions);
     }
 
     // Check to see if the focused element was inside of a hidden (Suspense) subtree.
@@ -2154,6 +2141,22 @@ function commitBeforeMutationEffectsImpl(fiber: Fiber) {
         flushPassiveEffects();
         return null;
       });
+    }
+  }
+}
+
+function commitBeforeMutationEffectsDeletions(deletions: Array<Fiber>) {
+  for (let i = 0; i < deletions.length; i++) {
+    const fiber = deletions[i];
+
+    // TODO (effects) It would be nice to avoid calling doesFiberContain()
+    // Maybe we can repurpose one of the subtreeTag positions for this instead?
+    // Use it to store which part of the tree the focused instance is in?
+    // This assumes we can safely determine that instance during the "render" phase.
+
+    if (doesFiberContain(fiber, ((focusedInstanceHandle: any): Fiber))) {
+      shouldFireAfterActiveInstanceBlur = true;
+      beforeActiveInstanceBlur();
     }
   }
 }
@@ -2200,57 +2203,18 @@ function commitMutationEffects(
   }
 }
 
-function commitMutationEffectsDeletionsImpl(
-  deletions: Array<Fiber>,
-  root: FiberRoot,
-  renderPriorityLevel,
-) {
-  for (let i = 0; i < deletions.length; i++) {
-    const childToDelete = deletions[i];
-    if (__DEV__) {
-      invokeGuardedCallback(
-        null,
-        commitDeletion,
-        null,
-        root,
-        childToDelete,
-        renderPriorityLevel,
-      );
-      if (hasCaughtError()) {
-        const error = clearCaughtError();
-        captureCommitPhaseError(childToDelete, error);
-      }
-    } else {
-      try {
-        commitDeletion(root, childToDelete, renderPriorityLevel);
-      } catch (error) {
-        captureCommitPhaseError(childToDelete, error);
-      }
-    }
-    // Don't clear the Deletion effect yet; we also use it to know when we need to detach refs later.
-  }
-
-  // TODO (effects) Don't clear this yet; we may need to cleanup passive effects
-  deletions.splice(0);
-}
-
 function commitMutationEffectsImpl(
   fiber: Fiber,
   root: FiberRoot,
   renderPriorityLevel,
 ) {
-  commitMutationEffectsDeletionsImpl(
-    fiber.deletions,
-    root,
-    renderPriorityLevel,
-  );
-  // TODO (effects) This is kind of crappy
-  if (fiber.return) {
-    commitMutationEffectsDeletionsImpl(
-      fiber.return.deletions,
-      root,
-      renderPriorityLevel,
-    );
+  // The "deletions" array on a Fiber holds previous children that were marked for deletion.
+  // However the overall commit sequence relies on child deletions being processed before parent's effects,
+  // so to satisfy that we also process the parent's "deletions" array (the deletion of siblings).
+  commitMutationEffectsDeletions(fiber.deletions, root, renderPriorityLevel);
+  const parent = fiber.return;
+  if (parent) {
+    commitMutationEffectsDeletions(parent.deletions, root, renderPriorityLevel);
   }
 
   const effectTag = fiber.effectTag;
@@ -2310,6 +2274,40 @@ function commitMutationEffectsImpl(
       break;
     }
   }
+}
+
+function commitMutationEffectsDeletions(
+  deletions: Array<Fiber>,
+  root: FiberRoot,
+  renderPriorityLevel,
+) {
+  for (let i = 0; i < deletions.length; i++) {
+    const childToDelete = deletions[i];
+    if (__DEV__) {
+      invokeGuardedCallback(
+        null,
+        commitDeletion,
+        null,
+        root,
+        childToDelete,
+        renderPriorityLevel,
+      );
+      if (hasCaughtError()) {
+        const error = clearCaughtError();
+        captureCommitPhaseError(childToDelete, error);
+      }
+    } else {
+      try {
+        commitDeletion(root, childToDelete, renderPriorityLevel);
+      } catch (error) {
+        captureCommitPhaseError(childToDelete, error);
+      }
+    }
+    // Don't clear the Deletion effect yet; we also use it to know when we need to detach refs later.
+  }
+
+  // TODO (effects) Don't clear this yet; we may need to cleanup passive effects
+  deletions.splice(0);
 }
 
 function commitLayoutEffects(
