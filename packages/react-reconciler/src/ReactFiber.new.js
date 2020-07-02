@@ -143,7 +143,7 @@ function FiberNode(
   this.mode = mode;
 
   // Effects
-  this._effectTag = NoEffect;
+  this.effectTag = NoEffect;
   this.subtreeTag = NoEffect;
   this.deletions = [];
   this.nextEffect = null;
@@ -195,25 +195,6 @@ function FiberNode(
     }
   }
 }
-FiberNode.prototype = {
-  get effectTag() {
-    return this._effectTag;
-  },
-  set effectTag(value) {
-    /*
-    if (this._effectTag !== value) {
-      console.log(
-        "effectTag:",
-        require('shared/getComponentName').default(this.type),
-        this._effectTag.toString(2).padStart(31, '0'), '->',
-        value.toString(2).padStart(31, '0'), '\n',
-        new Error().stack.split('\n').slice(2,3).join('\n'),
-      );
-    }
-      */
-    this._effectTag = value;
-  },
-};
 
 // This is a constructor function, rather than a POJO constructor, still
 // please ensure we do the following:
