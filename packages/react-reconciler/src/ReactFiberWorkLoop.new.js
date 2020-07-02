@@ -1979,7 +1979,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // We are done with the effect chain at this point so let's clear the
     // nextEffect pointers to assist with GC. If we have passive effects, we'll
     // clear this in flushPassiveEffects.
-    // TODO (effects)
+    // TODO (effects) Traverse with subtreeTag Deletion and detatch deletions array only
     nextEffect = firstEffect;
     while (nextEffect !== null) {
       const nextNextEffect = nextEffect.nextEffect;
@@ -2230,6 +2230,7 @@ function commitMutationEffectsDeletionsImpl(
     // Don't clear the Deletion effect yet; we also use it to know when we need to detach refs later.
   }
 
+  // TODO (effects) Don't clear this yet; we may need to cleanup passive effects
   deletions.splice(0);
 }
 
@@ -2578,6 +2579,7 @@ function flushPassiveEffectsImpl() {
   // Note: This currently assumes there are no passive effects on the root fiber
   // because the root is not part of its own effect list.
   // This could change in the future.
+  // TODO (effects) Traverse with subtreeTag Deletion and detatch deletions array only
   let effect = root.current.firstEffect;
   while (effect !== null) {
     const nextNextEffect = effect.nextEffect;
