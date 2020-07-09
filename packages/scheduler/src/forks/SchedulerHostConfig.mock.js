@@ -51,6 +51,7 @@ export function shouldYieldToHost(): boolean {
 }
 
 export function getCurrentTime(): number {
+//console.log('–> –> –> getCurrentTime()', currentTime);
   return currentTime;
 }
 
@@ -206,6 +207,12 @@ export function unstable_yieldValue(value: mixed): void {
 }
 
 export function unstable_advanceTime(ms: number) {
+// if (currentTime < 10000 && currentTime + ms > 10000) {
+// if (ms >= 10000) {
+// console.log(new Error('–> –> –> advanceTime() '+currentTime+' -> '+currentTime+ms).stack);
+// } else {
+// console.log('–> –> –> advanceTime()', currentTime, '->', currentTime+ms);
+// }
   // eslint-disable-next-line react-internal/no-production-logging
   if (console.log.name === 'disabledLog') {
     // If console.log has been patched, we assume we're in render

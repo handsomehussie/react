@@ -1023,7 +1023,8 @@ function detachFiberMutation(fiber: Fiber) {
   // traversal in a later effect. See PR #16820. We now clear the sibling
   // field after effects, see: detachFiberAfterEffects.
   fiber.alternate = null;
-  fiber.child = null;
+  // TODO (effects) Don't clear this yet because Passive effects might need it.
+  //fiber.child = null;
   fiber.dependencies = null;
   fiber.firstEffect = null;
   fiber.lastEffect = null;
@@ -1032,7 +1033,8 @@ function detachFiberMutation(fiber: Fiber) {
   fiber.pendingProps = null;
   fiber.return = null;
   fiber.stateNode = null;
-  fiber.updateQueue = null;
+  // TODO (effects) Don't clear this yet because Passive effects might need it.
+  //fiber.updateQueue = null;
   if (__DEV__) {
     fiber._debugOwner = null;
   }

@@ -2573,6 +2573,7 @@ function flushPassiveEffectsImpl() {
   for (let i = 0; i < unmountEffects.length; i += 2) {
     const effect = ((unmountEffects[i]: any): HookEffect);
     const fiber = ((unmountEffects[i + 1]: any): Fiber);
+console.log('flushPassiveEffectsImpl()', getComponentName(fiber.type), fiber.pendingProps);
     const destroy = effect.destroy;
     effect.destroy = undefined;
 

@@ -103,8 +103,8 @@ function loadModules({
 
 describe('Profiler', () => {
   describe('works in profiling and non-profiling bundles', () => {
-    [true, false].forEach(enableSchedulerTracing => {
-      [true, false].forEach(enableProfilerTimer => {
+    [false].forEach(enableSchedulerTracing => {
+      [true].forEach(enableProfilerTimer => {
         describe(`enableSchedulerTracing:${
           enableSchedulerTracing ? 'enabled' : 'disabled'
         } enableProfilerTimer:${
@@ -183,7 +183,7 @@ describe('Profiler', () => {
     });
   });
 
-  [true, false].forEach(enableSchedulerTracing => {
+  [true].forEach(enableSchedulerTracing => {
     describe(`onRender enableSchedulerTracing:${
       enableSchedulerTracing ? 'enabled' : 'disabled'
     }`, () => {
@@ -1004,7 +1004,7 @@ describe('Profiler', () => {
           expect(call[5]).toBe(380); // commit time
         });
 
-        [true, false].forEach(
+        [true].forEach(
           replayFailedUnitOfWorkWithInvokeGuardedCallback => {
             describe(`replayFailedUnitOfWorkWithInvokeGuardedCallback ${
               replayFailedUnitOfWorkWithInvokeGuardedCallback
@@ -1989,8 +1989,10 @@ describe('Profiler', () => {
         expect(call[4]).toEqual(enableSchedulerTracing ? new Set() : undefined); // interaction events
       });
 
-      it('should bubble time spent in effects to higher profilers', () => {
-        const callback = jest.fn();
+      fit('should bubble time spent in effects to higher profilers', () => {
+        const callback = jest.fn((...args) => {
+console.log('>>>>>>>>>>>>>>>>>>>>>>>> onPostCommit()', ...args);
+        });
 
         const ComponentWithEffects = ({
           cleanupDuration,
@@ -2002,8 +2004,10 @@ describe('Profiler', () => {
             setCountRef.current = setCount;
           }
           React.useEffect(() => {
+// console.log(new Error('<ComponentWithEffects> useEffect()').stack);
             Scheduler.unstable_advanceTime(duration);
             return () => {
+// console.log(new Error('<ComponentWithEffects> useEffect() -> cleanup').stack);
               Scheduler.unstable_advanceTime(cleanupDuration);
             };
           });
@@ -2013,6 +2017,7 @@ describe('Profiler', () => {
 
         const setCountRef = React.createRef(null);
 
+console.log(':::: mount');
         let renderer = null;
         ReactTestRenderer.act(() => {
           renderer = ReactTestRenderer.create(
@@ -2042,6 +2047,7 @@ describe('Profiler', () => {
         expect(call[3]).toBe(2); // commit start time (before mutations or effects)
         expect(call[4]).toEqual(enableSchedulerTracing ? new Set() : undefined); // interaction events
 
+console.log(':::: update 1');
         ReactTestRenderer.act(() => setCountRef.current(count => count + 1));
 
         expect(callback).toHaveBeenCalledTimes(2);
@@ -2055,6 +2061,7 @@ describe('Profiler', () => {
         expect(call[3]).toBe(1013); // commit start time (before mutations or effects)
         expect(call[4]).toEqual(enableSchedulerTracing ? new Set() : undefined); // interaction events
 
+console.log(':::: update 2');
         ReactTestRenderer.act(() => {
           renderer.update(
             <React.Profiler id="root-update" onPostCommit={callback}>
