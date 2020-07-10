@@ -2987,6 +2987,8 @@ function bailoutOnAlreadyFinishedWork(
 
   markSkippedUpdateLanes(workInProgress.lanes);
 
+  workInProgress.didBailOut = true;
+
   // Check if the children have any pending work.
   if (!includesSomeLane(renderLanes, workInProgress.childLanes)) {
     // The children don't have any work either. We can skip them.

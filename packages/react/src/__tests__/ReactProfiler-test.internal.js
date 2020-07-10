@@ -1989,7 +1989,7 @@ describe('Profiler', () => {
         expect(call[4]).toEqual(enableSchedulerTracing ? new Set() : undefined); // interaction events
       });
 
-      fit('should bubble time spent in effects to higher profilers', () => {
+      it('should bubble time spent in effects to higher profilers', () => {
         const callback = jest.fn((...args) => {
 console.log('>>>>>>>>>>>>>>>>>>>>>>>> onPostCommit()', ...args);
         });
