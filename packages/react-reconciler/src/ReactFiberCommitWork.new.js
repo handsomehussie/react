@@ -35,6 +35,7 @@ import {
   enableSuspenseCallback,
   enableScopeAPI,
   enableDoubleInvokingEffects,
+  enableOffscreenAPI,
 } from 'shared/ReactFeatureFlags';
 import {
   FunctionComponent,
@@ -135,6 +136,9 @@ import {didWarnAboutReassigningProps} from './ReactFiberBeginWork.new';
 
 // Used to avoid traversing the return path to find the nearest Profiler ancestor during commit.
 let nearestProfilerOnStack: Fiber | null = null;
+
+// Used to avoid traversing the return path to find the nearest Offscreen ancestor during commit.
+let nearestOffscreenOnStack: Fiber | null = null;
 
 let didWarnAboutUndefinedSnapshotBeforeUpdate: Set<mixed> | null = null;
 if (__DEV__) {
@@ -475,39 +479,7 @@ function recursivelyCommitLayoutEffects(
         nearestProfilerOnStack = finishedWork;
       }
 
-      let child = finishedWork.child;
-      while (child !== null) {
-        const primarySubtreeFlags = finishedWork.subtreeFlags & LayoutMask;
-        if (primarySubtreeFlags !== NoFlags) {
-          if (__DEV__) {
-            const prevCurrentFiberInDEV = currentDebugFiberInDEV;
-            setCurrentDebugFiberInDEV(child);
-            invokeGuardedCallback(
-              null,
-              recursivelyCommitLayoutEffects,
-              null,
-              child,
-              finishedRoot,
-            );
-            if (hasCaughtError()) {
-              const error = clearCaughtError();
-              captureCommitPhaseError(child, finishedWork, error);
-            }
-            if (prevCurrentFiberInDEV !== null) {
-              setCurrentDebugFiberInDEV(prevCurrentFiberInDEV);
-            } else {
-              resetCurrentDebugFiberInDEV();
-            }
-          } else {
-            try {
-              recursivelyCommitLayoutEffects(child, finishedRoot);
-            } catch (error) {
-              captureCommitPhaseError(child, finishedWork, error);
-            }
-          }
-        }
-        child = child.sibling;
-      }
+      recursivelyCommitLayoutEffectsOnChildren(finishedWork, finishedRoot);
 
       const primaryFlags = flags & (Update | Callback);
       if (primaryFlags !== NoFlags) {
@@ -554,45 +526,29 @@ function recursivelyCommitLayoutEffects(
       break;
     }
 
-    // case Offscreen: {
-    //   TODO: Fast path to invoke all nested layout effects when Offscren goes from hidden to visible.
-    //   break;
-    // }
+    case OffscreenComponent: {
+      if (enableOffscreenAPI) {
+        const current = finishedWork.alternate;
+        const wasHidden = current !== null && current.memoizedState !== null;
+        const isHidden = finishedWork.memoizedState !== null;
+        if (wasHidden && !isHidden) {
+          const prevOffscreenOnStack = nearestOffscreenOnStack;
+          nearestOffscreenOnStack = finishedWork;
+
+          // TODO Recurse and run all layout effects and refs
+
+          nearestOffscreenOnStack = prevOffscreenOnStack;
+        } else {
+          recursivelyCommitLayoutEffectsOnChildren(finishedWork, finishedRoot);
+        }
+      } else {
+        recursivelyCommitLayoutEffectsOnChildren(finishedWork, finishedRoot);
+      }
+      break;
+    }
 
     default: {
-      let child = finishedWork.child;
-      while (child !== null) {
-        const primarySubtreeFlags = finishedWork.subtreeFlags & LayoutMask;
-        if (primarySubtreeFlags !== NoFlags) {
-          if (__DEV__) {
-            const prevCurrentFiberInDEV = currentDebugFiberInDEV;
-            setCurrentDebugFiberInDEV(child);
-            invokeGuardedCallback(
-              null,
-              recursivelyCommitLayoutEffects,
-              null,
-              child,
-              finishedRoot,
-            );
-            if (hasCaughtError()) {
-              const error = clearCaughtError();
-              captureCommitPhaseError(child, finishedWork, error);
-            }
-            if (prevCurrentFiberInDEV !== null) {
-              setCurrentDebugFiberInDEV(prevCurrentFiberInDEV);
-            } else {
-              resetCurrentDebugFiberInDEV();
-            }
-          } else {
-            try {
-              recursivelyCommitLayoutEffects(child, finishedRoot);
-            } catch (error) {
-              captureCommitPhaseError(child, finishedWork, error);
-            }
-          }
-        }
-        child = child.sibling;
-      }
+      recursivelyCommitLayoutEffectsOnChildren(finishedWork, finishedRoot);
 
       const primaryFlags = flags & (Update | Callback);
       if (primaryFlags !== NoFlags) {
@@ -645,7 +601,6 @@ function recursivelyCommitLayoutEffects(
           case HostText:
           case IncompleteClassComponent:
           case LegacyHiddenComponent:
-          case OffscreenComponent:
           case ScopeComponent:
           case SuspenseListComponent: {
             // We have no life-cycles associated with these component types.
@@ -673,6 +628,45 @@ function recursivelyCommitLayoutEffects(
       }
       break;
     }
+  }
+}
+
+function recursivelyCommitLayoutEffectsOnChildren(
+  finishedWork: Fiber,
+  finishedRoot: FiberRoot,
+): void {
+  let child = finishedWork.child;
+  while (child !== null) {
+    const primarySubtreeFlags = finishedWork.subtreeFlags & LayoutMask;
+    if (primarySubtreeFlags !== NoFlags) {
+      if (__DEV__) {
+        const prevCurrentFiberInDEV = currentDebugFiberInDEV;
+        setCurrentDebugFiberInDEV(child);
+        invokeGuardedCallback(
+          null,
+          recursivelyCommitLayoutEffects,
+          null,
+          child,
+          finishedRoot,
+        );
+        if (hasCaughtError()) {
+          const error = clearCaughtError();
+          captureCommitPhaseError(child, finishedWork, error);
+        }
+        if (prevCurrentFiberInDEV !== null) {
+          setCurrentDebugFiberInDEV(prevCurrentFiberInDEV);
+        } else {
+          resetCurrentDebugFiberInDEV();
+        }
+      } else {
+        try {
+          recursivelyCommitLayoutEffects(child, finishedRoot);
+        } catch (error) {
+          captureCommitPhaseError(child, finishedWork, error);
+        }
+      }
+    }
+    child = child.sibling;
   }
 }
 
@@ -1647,6 +1641,8 @@ function commitDeletion(
 }
 
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
+  // TODO If OffscreenComponent ~> maybe recursively unmount all layout effects
+
   if (!supportsMutation) {
     switch (finishedWork.tag) {
       case FunctionComponent:

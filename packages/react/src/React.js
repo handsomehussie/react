@@ -17,6 +17,7 @@ import {
   REACT_SUSPENSE_LIST_TYPE,
   REACT_LEGACY_HIDDEN_TYPE,
   REACT_SCOPE_TYPE,
+  REACT_OFFSCREEN_TYPE,
 } from 'shared/ReactSymbols';
 
 import {Component, PureComponent} from './ReactBaseClasses';
@@ -117,5 +118,7 @@ export {
   createFundamental as unstable_createFundamental,
   // enableScopeAPI
   REACT_SCOPE_TYPE as unstable_Scope,
+  // enableOffscreenAPI
+  REACT_OFFSCREEN_TYPE as unstable_Offscreen,
   useOpaqueIdentifier as unstable_useOpaqueIdentifier,
 };

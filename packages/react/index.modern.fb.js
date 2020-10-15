@@ -54,6 +54,8 @@ export {
   block as unstable_block,
   // enableScopeAPI
   unstable_Scope,
+  // enableOffscreenAPI
+  unstable_Offscreen,
   unstable_useOpaqueIdentifier,
   // enableDebugTracing
   unstable_DebugTracingMode,

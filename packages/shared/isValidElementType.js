@@ -24,8 +24,9 @@ import {
   REACT_BLOCK_TYPE,
   REACT_SERVER_BLOCK_TYPE,
   REACT_LEGACY_HIDDEN_TYPE,
+  REACT_OFFSCREEN_TYPE,
 } from 'shared/ReactSymbols';
-import {enableScopeAPI} from './ReactFeatureFlags';
+import {enableOffscreenAPI, enableScopeAPI} from './ReactFeatureFlags';
 
 export default function isValidElementType(type: mixed) {
   if (typeof type === 'string' || typeof type === 'function') {
@@ -41,7 +42,8 @@ export default function isValidElementType(type: mixed) {
     type === REACT_SUSPENSE_TYPE ||
     type === REACT_SUSPENSE_LIST_TYPE ||
     type === REACT_LEGACY_HIDDEN_TYPE ||
-    (enableScopeAPI && type === REACT_SCOPE_TYPE)
+    (enableScopeAPI && type === REACT_SCOPE_TYPE) ||
+    (enableOffscreenAPI && type === REACT_OFFSCREEN_TYPE)
   ) {
     return true;
   }

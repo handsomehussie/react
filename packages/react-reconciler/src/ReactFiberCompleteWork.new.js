@@ -142,6 +142,7 @@ import {
   enableScopeAPI,
   enableBlocksAPI,
   enableProfilerTimer,
+  enableOffscreenAPI,
 } from 'shared/ReactFeatureFlags';
 import {
   markSpawnedWork,
@@ -1519,13 +1520,18 @@ function completeWork(
 
       if (current !== null) {
         const prevState: OffscreenState | null = current.memoizedState;
-
         const prevIsHidden = prevState !== null;
         if (
           prevIsHidden !== nextIsHidden &&
           newProps.mode !== 'unstable-defer-without-hiding'
         ) {
           workInProgress.flags |= Update | Visibility;
+
+          if (enableOffscreenAPI) {
+            if (newProps.mode !== 'hidden-with-aggressive-cleanup') {
+              workInProgress.flags |= Passive;
+            }
+          }
         }
       }
 

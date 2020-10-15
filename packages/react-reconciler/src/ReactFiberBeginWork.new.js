@@ -61,6 +61,7 @@ import {
   ContentReset,
   DidCapture,
   Ref,
+  RefStatic,
   Deletion,
   ForceUpdateForLegacySuspense,
   StaticMask,
@@ -579,6 +580,7 @@ function updateOffscreenComponent(
 
   if (
     nextProps.mode === 'hidden' ||
+    nextProps.mode === 'hidden-with-aggressive-cleanup' ||
     nextProps.mode === 'unstable-defer-without-hiding'
   ) {
     if ((workInProgress.mode & ConcurrentMode) === NoMode) {
@@ -643,9 +645,9 @@ function updateOffscreenComponent(
   return workInProgress.child;
 }
 
-// Note: These happen to have identical begin phases, for now. We shouldn't hold
-// ourselves to this constraint, though. If the behavior diverges, we should
-// fork the function.
+// Note: These happen to have identical begin phases, for now.
+// We shouldn't hold ourselves to this constraint, though.
+// If the behavior diverges, we should fork the function.
 const updateLegacyHiddenComponent = updateOffscreenComponent;
 
 function updateFragment(
@@ -693,7 +695,7 @@ function markRef(current: Fiber | null, workInProgress: Fiber) {
     (current !== null && current.ref !== ref)
   ) {
     // Schedule a Ref effect
-    workInProgress.flags |= Ref;
+    workInProgress.flags |= Ref | RefStatic;
   }
 }
 

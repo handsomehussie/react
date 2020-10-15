@@ -83,5 +83,6 @@ export {
   unstable_LegacyHidden,
   unstable_createFundamental,
   unstable_Scope,
+  unstable_Offscreen,
   unstable_useOpaqueIdentifier,
 } from './src/React';
