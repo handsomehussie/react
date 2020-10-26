@@ -2197,6 +2197,9 @@ function commitMutationEffects(
   root: FiberRoot,
   renderPriorityLevel: ReactPriorityLevel,
 ) {
+  // TODO BRIAN OFFSCREEN Check if we're hiding an Offscreen component and detach nested refs.
+  // TODO BRIAN OFFSCREEN Check if we're updating an Offscreen component and show/hide nested DOM.
+
   let fiber = firstChild;
   while (fiber !== null) {
     const deletions = fiber.deletions;

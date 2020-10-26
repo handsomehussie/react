@@ -387,6 +387,7 @@ describe('ReactOffscreen', () => {
     }
 
     const root = ReactNoop.createRoot();
+    console.info('::::: mount');
     await ReactNoop.act(async () => {
       root.render(<App />);
     });
@@ -406,6 +407,7 @@ describe('ReactOffscreen', () => {
       </React.Fragment>,
     );
 
+    console.info('::::: update: mode "hidden-with-aggressive-cleanup"');
     ReactNoop.act(() => _setMode('hidden-with-aggressive-cleanup'));
     expect(Scheduler).toHaveYielded([
       'App',
@@ -424,6 +426,7 @@ describe('ReactOffscreen', () => {
       </React.Fragment>,
     );
 
+    console.info('::::: update: text');
     ReactNoop.act(() => _setText('New Text'));
     expect(Scheduler).toHaveYielded([
       'App',
@@ -439,6 +442,7 @@ describe('ReactOffscreen', () => {
       </React.Fragment>,
     );
 
+    console.info('::::: update: mode "visible"');
     ReactNoop.act(() => _setMode('visible'));
     expect(Scheduler).toHaveYielded([
       'App',
