@@ -546,12 +546,14 @@ function recursivelyCommitLayoutEffects(
           // If this component is currently hidden (either directly or by an Offscreen ancestor)
           // but it was previously visible (no hidden Offscreen ancestors)
           // then we need to recurse to the next Offscreen component and destroy effects/refs.
-          recursivelyDestroyEffectsWithinOffscreenTree(finishedWork, finishedRoot);
+          
+          // TODO BRIAN OFFSCREEN
         } else if (!offscreenStackIsHidden && offscreenStackWasHidden) {
           // If this component is currently visible (no hidden Offscreen ancestors)
           // but it was previously hidden (either directly or by an Offscreen ancestor)
           // then we need to recurse to the next Offscreen component and recreate effects/refs.
-          recursivelyCreateEffectsWithinOffscreenTree(finishedWork, finishedRoot);
+
+          // TODO BRIAN OFFSCREEN
         } else {
           // TODO BRIAN OFFSCREEN Should we bailout here if offscreenStackIsHidden?
 
@@ -647,140 +649,6 @@ function recursivelyCommitLayoutEffects(
       }
       break;
     }
-  }
-}
-
-function recursivelyDestroyEffectsWithinOffscreenTree(
-  finishedWork: Fiber,
-  finishedRoot: FiberRoot,
-): void {
-  if (enableOffscreenAPI) {
-    console.info('[commit] recursivelyDestroyEffectsWithinOffscreenTree()', getComponentName(finishedWork.type));
-
-    // TODO BRIAN OFSCREEN We care about these subtreeFlags: Layout | Passive | Ref | Visibility
-    // But what about other cases? e.g. what if a subtree is Deleted inside of an Offscreen tree?
-    // Can we recurse separtely like this? do we need to set an override flag for the main recursive method?
-
-    const {flags, tag} = finishedWork;
-    switch (tag) {
-      case Profiler: {
-        // TODO BRIAN OFFSCREEN How should Profiler behave within hidden Offscreen trees?
-        break;
-      }
-
-      case OffscreenComponent: {
-        // Re-evaluate at each Offscreen boundary.
-        recursivelyCommitLayoutEffects(finishedWork, finishedRoot);
-        break;
-      }
-
-      default: {
-        // TODO BRIAN OFFSCREEN Ignore regular flags; check passive flags instead, except maybe Visibility.
-
-        let child = finishedWork.child;
-        while (child !== null) {
-          recursivelyDestroyEffectsWithinOffscreenTree(child, finishedRoot);
-
-          child = child.sibling;
-        }
-
-        // TODO BRIAN OFFSCREEN Check PassiveStatic also (depending on current "mode")
-        const primaryFlags = flags & (LayoutStatic | RefStatic);
-        if (primaryFlags !== NoFlags) {
-          switch (tag) {
-            case FunctionComponent:
-            case ForwardRef:
-            case SimpleMemoComponent:
-            case Block: {
-              const updateQueue: FunctionComponentUpdateQueue | null = (current.updateQueue: any);
-              if (updateQueue !== null) {
-                const lastEffect = updateQueue.lastEffect;
-                if (lastEffect !== null) {
-                  const firstEffect = lastEffect.next;
-
-                  let effect = firstEffect;
-                  do {
-                    const {destroy, tag} = effect;
-                    if (destroy !== undefined) {
-                      if ((tag & HookLayout) !== NoHookEffect) {
-                        if (
-                          enableProfilerTimer &&
-                          enableProfilerCommitHooks &&
-                          current.mode & ProfileMode
-                        ) {
-                          startLayoutEffectTimer();
-                          safelyCallDestroy(current, nearestMountedAncestor, destroy);
-                          recordLayoutEffectDuration(current);
-                        } else {
-                          safelyCallDestroy(current, nearestMountedAncestor, destroy);
-                        }
-                      }
-                    }
-                    effect = effect.next;
-                  } while (effect !== firstEffect);
-                }
-              }
-              break;
-            }
-            case ClassComponent: {
-              safelyDetachRef(current, nearestMountedAncestor);
-              const instance = current.stateNode;
-              if (typeof instance.componentWillUnmount === 'function') {
-                safelyCallComponentWillUnmount(
-                  current,
-                  instance,
-                  nearestMountedAncestor,
-                );
-              }
-              return;
-            }
-            case HostComponent: {
-              safelyDetachRef(current, nearestMountedAncestor);
-              return;
-            }
-            case HostRoot: {
-              // TODO BRIAN OFFSCREEN Anything to do?
-              break;
-            }
-            case SuspenseComponent: {
-              // TODO BRIAN OFFSCREEN Anything to do?
-              break;
-            }
-            case FundamentalComponent:
-            case HostPortal:
-            case HostText:
-            case IncompleteClassComponent:
-            case LegacyHiddenComponent:
-            case ScopeComponent:
-            case SuspenseListComponent: {
-              // We have no life-cycles associated with these component types.
-              break;
-            }
-            default: {
-              invariant(
-                false,
-                'This unit of work tag should not have side-effects. This error is ' +
-                  'likely caused by a bug in React. Please file an issue.',
-              );
-            }
-          }
-        }
-
-        if (enableScopeAPI) {
-          // TODO BRIAN OFFSCREEN How should Scopes work here?
-        }
-        break;
-      }
-    }
-  }
-}
-function recursivelyCreateEffectsWithinOffscreenTree(
-  finishedWork: Fiber,
-  finishedRoot: FiberRoot,
-): void {
-  if (enableOffscreenAPI) {
-    console.info('[commit] recursivelyCreateEffectsWithinOffscreenTree()');
-    recursivelyCommitLayoutEffectsOnChildren(finishedWork, finishedRoot);
   }
 }
 
