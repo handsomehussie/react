@@ -545,7 +545,7 @@ export function attach(
     }
   }
 
-  const debug = (name: string, fiber: Fiber, parentFiber: ?Fiber): void => {
+  const debug = (name: string, fiber: Fiber, parentFiber: ?Fiber, extraString?: string = ''): void => {
     if (__DEBUG__) {
       const displayName =
         fiber.tag + ':' + (getDisplayNameForFiber(fiber) || 'null');
@@ -562,10 +562,11 @@ export function attach(
       console.log(
         `[renderer] %c${name} %c${displayName} (${id}) %c${
           parentFiber ? `${parentDisplayName} (${parentID})` : ''
-        }`,
+        } %c${extraString}`,
         'color: red; font-weight: bold;',
         'color: blue;',
         'color: purple;',
+        'color: black;',
       );
     }
   };
@@ -1235,9 +1236,15 @@ export function attach(
     }
   }
 
+  // TODO For some reason, DevTools is recording an UNMOUNT operation for a Lazy component that has never been MOUNTED.
+  // This causes the DevTools Profiler to throw an error: Commit tree does not contain fiber 441. This is a bug in React DevTools.
+  // Interestingly, this never happens in the Components tree– why?
+  // The Lazy component is being deleted as part of umountHostComponents() -> commitNestedUnmounts()
+  // But maybe it doesn't get "mounted" if it never resolves? Maybe DevTools needs to handle this case specially?
+  // and maybe we need a new test for it! :)
   function recordUnmount(fiber: Fiber, isSimulated: boolean) {
     if (__DEBUG__) {
-      debug('recordUnmount()', fiber);
+      debug('recordUnmount()', fiber, null, isSimulated ? 'unmount is simulated' : '');
     }
 
     if (trackedPathMatchFiber !== null) {
@@ -1255,17 +1262,17 @@ export function attach(
     const isRoot = fiber.tag === HostRoot;
     const primaryFiber = getPrimaryFiber(fiber);
     if (!fiberToIDMap.has(primaryFiber)) {
-      // If we've never seen this Fiber, it might be because
-      // it is inside a non-current Suspense fragment tree,
-      // and so the store is not even aware of it.
-      // In that case we can just ignore it, or otherwise
-      // there will be errors later on.
+      // If we've never seen this Fiber, it might be inside of a legacy render Suspense fragment (so the store is not even aware of it).
+      // In that case we can just ignore it or it will cause errors later on.
+      // One example of this is a Lazy component that never resolves before being unmounted.
+      //
+      // TODO: This is fragile and can obscure actual bugs.
+      //
+      // Calling getPrimaryFiber() lazily adds fibers to the Map, so clean up after ourselves before returning.
       primaryFibers.delete(primaryFiber);
-      // TODO: this is fragile and can obscure actual bugs.
       return;
     }
     const id = getFiberID(primaryFiber);
-
     if (isRoot) {
       // Roots must be removed only after all children (pending and simulated) have been removed.
       // So we track it separately.
