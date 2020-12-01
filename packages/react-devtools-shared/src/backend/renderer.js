@@ -180,6 +180,7 @@ export function getInternalReactConstants(
       ForwardRef: 11,
       Fragment: 7,
       FunctionComponent: 0,
+      FundamentalComponent: 20, // Experimental
       HostComponent: 5,
       HostPortal: 4,
       HostRoot: 3,
@@ -238,6 +239,7 @@ export function getInternalReactConstants(
       ForwardRef: 11,
       Fragment: 7,
       FunctionComponent: 0,
+      FundamentalComponent: -1, // Experimental
       HostComponent: 5,
       HostPortal: 4,
       HostRoot: 3,
@@ -267,6 +269,7 @@ export function getInternalReactConstants(
       ForwardRef: 13,
       Fragment: 9,
       FunctionComponent: 0,
+      FundamentalComponent: -1, // Experimental
       HostComponent: 7,
       HostPortal: 6,
       HostRoot: 5,
@@ -296,6 +299,7 @@ export function getInternalReactConstants(
       ForwardRef: 14,
       Fragment: 10,
       FunctionComponent: 1,
+      FundamentalComponent: -1, // Experimental
       HostComponent: 5,
       HostPortal: 4,
       HostRoot: 3,
@@ -335,6 +339,7 @@ export function getInternalReactConstants(
     FunctionComponent,
     IndeterminateComponent,
     ForwardRef,
+    FundamentalComponent,
     HostRoot,
     HostComponent,
     HostPortal,

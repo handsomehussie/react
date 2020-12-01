@@ -35,6 +35,7 @@ export type WorkTagMap = {|
   ForwardRef: WorkTag,
   Fragment: WorkTag,
   FunctionComponent: WorkTag,
+  FundamentalComponent: WorkTag,
   HostComponent: WorkTag,
   HostPortal: WorkTag,
   HostRoot: WorkTag,
