@@ -19,9 +19,11 @@ import {
   createLaneMap,
 } from './ReactFiberLane.new';
 import {
+  enableCache,
+  enableProfilerTimer,
+  enableProfilerCommitHooks,
   enableSchedulerTracing,
   enableSuspenseCallback,
-  enableCache,
 } from 'shared/ReactFeatureFlags';
 import {unstable_getThreadID} from 'scheduler/tracing';
 import {initializeUpdateQueue} from './ReactUpdateQueue.new';
@@ -69,6 +71,13 @@ function FiberRootNode(containerInfo, tag, hydrate) {
   }
   if (enableSuspenseCallback) {
     this.hydrationCallbacks = null;
+  }
+
+  if (enableProfilerTimer && enableProfilerCommitHooks) {
+    // In addition to storing this information on Profiler fibers,
+    // it is also stored on the root so that DevTools can read it.
+    this.effectDuration = 0;
+    this.passiveEffectDuration = 0;
   }
 
   if (__DEV__) {

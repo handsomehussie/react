@@ -470,7 +470,9 @@ export function createHostRootFiber(
     mode |= ProfileMode;
   }
 
-  return createFiber(HostRoot, null, null, mode);
+  const fiber = createFiber(HostRoot, null, null, mode);
+
+  return fiber;
 }
 
 export function createFiberFromTypeAndProps(

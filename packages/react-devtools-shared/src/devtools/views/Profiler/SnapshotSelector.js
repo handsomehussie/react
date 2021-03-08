@@ -35,9 +35,10 @@ export default function SnapshotSelector(_: Props) {
   const commitDurations: Array<number> = [];
   const commitTimes: Array<number> = [];
   commitData.forEach(commitDatum => {
-    commitDurations.push(commitDatum.duration);
+    commitDurations.push(commitDatum.duration + (commitDatum.effedtDuration || 0) + (commitDatum.passiveEffectDuration || 0));
     commitTimes.push(commitDatum.timestamp);
   });
+console.log('commitDurations:',commitDurations)
 
   const filteredCommitIndices = useMemo(
     () =>

@@ -39,6 +39,7 @@ function SnapshotCommitListItem({data: itemData, index, style}: Props) {
 
   const commitDuration = commitDurations[index];
   const commitTime = commitTimes[index];
+console.log(index,'->',commitDuration,'@',commitTime)
 
   // Use natural log for bar height.
   // This prevents one (or a few) outliers from squishing the majority of other commits.

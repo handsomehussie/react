@@ -250,6 +250,7 @@ export default class ProfilerStore extends EventEmitter<{|
   };
 
   onBridgeProfilingData = (dataBackend: ProfilingDataBackend) => {
+    console.log('onBridgeProfilingData()', dataBackend);
     if (this._isProfiling) {
       // This should never happen, but if it does- ignore previous profiling data.
       return;

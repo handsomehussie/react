@@ -1644,7 +1644,7 @@ describe('Profiler', () => {
         expect(call[3]).toBe(1011); // commit start time (before mutations or effects)
       });
 
-      it('should bubble time spent in layout effects to higher profilers', () => {
+      fit('should bubble time spent in layout effects to higher profilers', () => {
         const callback = jest.fn();
 
         const ComponentWithEffects = ({
@@ -1730,6 +1730,7 @@ describe('Profiler', () => {
         expect(call[2]).toBe(1100); // durations
         expect(call[3]).toBe(1124); // commit start time (before mutations or effects)
         expect(call[4]).toEqual(enableSchedulerTracing ? new Set() : undefined); // interaction events
+        console.log(renderer.toTree());
       });
 
       it('should properly report time in layout effects even when there are errors', () => {

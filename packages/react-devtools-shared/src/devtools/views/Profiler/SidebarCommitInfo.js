@@ -34,10 +34,13 @@ export default function SidebarCommitInfo(_: Props) {
   const {interactions} = profilerStore.getDataForRoot(rootID);
   const {
     duration,
+    effectDuration,
     interactionIDs,
+    passiveEffectDuration,
     priorityLevel,
     timestamp,
   } = profilerStore.getCommitData(rootID, selectedCommitIndex);
+  console.log({duration, effectDuration, passiveEffectDuration});
 
   const viewInteraction = interactionID => {
     selectTab('interactions');
@@ -63,6 +66,22 @@ export default function SidebarCommitInfo(_: Props) {
             <label className={styles.Label}>Render duration</label>:{' '}
             <span className={styles.Value}>{formatDuration(duration)}ms</span>
           </li>
+          {effectDuration !== null && (
+            <li className={styles.ListItem}>
+              <label className={styles.Label}>Layout effects duration</label>:{' '}
+              <span className={styles.Value}>
+                {formatDuration(effectDuration)}ms
+              </span>
+            </li>
+          )}
+          {passiveEffectDuration !== null && (
+            <li className={styles.ListItem}>
+              <label className={styles.Label}>Passive effects duration</label>:{' '}
+              <span className={styles.Value}>
+                {formatDuration(passiveEffectDuration)}ms
+              </span>
+            </li>
+          )}
           <li className={styles.Interactions}>
             <label className={styles.Label}>Interactions</label>:
             <div className={styles.InteractionList}>
