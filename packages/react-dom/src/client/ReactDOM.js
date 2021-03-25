@@ -189,31 +189,7 @@ const Internals = {
 };
 
 export {
-  createPortal,
-  batchedUpdates as unstable_batchedUpdates,
-  flushSync,
-  Internals as __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
-  ReactVersion as version,
-  // Disabled behind disableLegacyReactDOMAPIs
-  findDOMNode,
-  hydrate,
   render,
-  unmountComponentAtNode,
-  // exposeConcurrentModeAPIs
-  createRoot,
-  flushControlled as unstable_flushControlled,
-  scheduleHydration as unstable_scheduleHydration,
-  // Disabled behind disableUnstableRenderSubtreeIntoContainer
-  renderSubtreeIntoContainer as unstable_renderSubtreeIntoContainer,
-  // Disabled behind disableUnstableCreatePortal
-  // Temporary alias since we already shipped React 16 RC with it.
-  // TODO: remove in React 18.
-  unstable_createPortal,
-  // enableCreateEventHandleAPI
-  createEventHandle as unstable_createEventHandle,
-  // TODO: Remove this once callers migrate to alternatives.
-  // This should only be used by React internals.
-  runWithPriority as unstable_runWithPriority,
 };
 
 const foundDevTools = injectIntoDevTools({

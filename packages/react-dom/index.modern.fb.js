@@ -8,16 +8,5 @@
  */
 
 export {
-  createPortal,
-  unstable_batchedUpdates,
-  flushSync,
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
-  version,
-  createRoot,
-  createRoot as unstable_createRoot,
-  unstable_flushControlled,
-  unstable_scheduleHydration,
-  unstable_runWithPriority,
-  unstable_createEventHandle,
-  unstable_isNewReconciler,
+  render,
 } from './src/client/ReactDOM';

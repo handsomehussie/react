@@ -11,85 +11,50 @@ import typeof * as FeatureFlagsType from 'shared/ReactFeatureFlags';
 import typeof * as ExportsType from './ReactFeatureFlags.www';
 import typeof * as DynamicFeatureFlags from './ReactFeatureFlags.www-dynamic';
 
-// Re-export dynamic flags from the www version.
-const dynamicFeatureFlags: DynamicFeatureFlags = require('ReactFeatureFlags');
-
-export const {
-  debugRenderPhaseSideEffectsForStrictMode,
-  disableInputAttributeSyncing,
-  enableTrustedTypesIntegration,
-  disableSchedulerTimeoutBasedOnReactExpirationTime,
-  warnAboutSpreadingKeyToJSX,
-  replayFailedUnitOfWorkWithInvokeGuardedCallback,
-  enableFilterEmptyStringAttributesDOM,
-  enableLegacyFBSupport,
-  deferRenderPhaseUpdateToNextBatch,
-  enableDebugTracing,
-  skipUnmountedBoundaries,
-  enableStrictEffects,
-  createRootStrictEffectsByDefault,
-  enableUseRefAccessWarning,
-  disableNativeComponentFrames,
-  disableSchedulerTimeoutInWorkLoop,
-  enableLazyContextPropagation,
-  deletedTreeCleanUpLevel,
-} = dynamicFeatureFlags;
-
-// On WWW, __EXPERIMENTAL__ is used for a new modern build.
-// It's not used anywhere in production yet.
-
-export const enableProfilerTimer = __PROFILE__;
-export const enableProfilerCommitHooks = __PROFILE__;
-export const enableProfilerNestedUpdatePhase = __PROFILE__;
-export const enableProfilerNestedUpdateScheduledHook =
-  __PROFILE__ && dynamicFeatureFlags.enableProfilerNestedUpdateScheduledHook;
-
-// Logs additional User Timing API marks for use with an experimental profiling tool.
-export const enableSchedulingProfiler =
-  __PROFILE__ && dynamicFeatureFlags.enableSchedulingProfiler;
-
-// Note: we'll want to remove this when we to userland implementation.
-// For now, we'll turn it on for everyone because it's *already* on for everyone in practice.
-// At least this will let us stop shipping <Profiler> implementation to all users.
-export const enableSchedulerTracing = true;
-export const enableSchedulerDebugging = true;
-
-export const warnAboutDeprecatedLifecycles = true;
-export const disableLegacyContext = __EXPERIMENTAL__;
+export const debugRenderPhaseSideEffectsForStrictMode = false;
+export const disableInputAttributeSyncing = false;
+export const enableTrustedTypesIntegration = false;
+export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
+export const warnAboutSpreadingKeyToJSX = false;
+export const replayFailedUnitOfWorkWithInvokeGuardedCallback = false;
+export const enableFilterEmptyStringAttributesDOM = false;
+export const enableLegacyFBSupport = false;
+export const deferRenderPhaseUpdateToNextBatch = false;
+export const enableDebugTracing = false;
+export const skipUnmountedBoundaries = false;
+export const enableStrictEffects = false;
+export const createRootStrictEffectsByDefault = false;
+export const enableUseRefAccessWarning = false;
+export const disableNativeComponentFrames = false;
+export const disableSchedulerTimeoutInWorkLoop = false;
+export const enableLazyContextPropagation = false;
+export const deletedTreeCleanUpLevel = false;
+export const enableProfilerTimer = false;
+export const enableProfilerCommitHooks = false;
+export const enableProfilerNestedUpdatePhase = false;
+export const enableProfilerNestedUpdateScheduledHook = false;
+export const enableSchedulingProfiler = false;
+export const enableSchedulerTracing = false;
+export const enableSchedulerDebugging = false;
+export const warnAboutDeprecatedLifecycles = false;
+export const disableLegacyContext = false;
 export const warnAboutStringRefs = false;
 export const warnAboutDefaultPropsOnFunctionComponents = false;
-
-export const enableSuspenseServerRenderer = true;
-export const enableSelectiveHydration = true;
-
-export const enableLazyElements = true;
-export const enableCache = true;
-
-export const disableJavaScriptURLs = true;
-
-export const disableModulePatternComponents = true;
-
-export const enableCreateEventHandleAPI = true;
-
-export const enableScopeAPI = true;
-
-export const warnAboutUnmockedScheduler = true;
-
-export const enableSuspenseCallback = true;
-
-export const enableComponentStackLocations = true;
-
-export const disableTextareaChildren = __EXPERIMENTAL__;
-
+export const enableSuspenseServerRenderer = true; /// This flag is needed to repro the problem
+export const enableSelectiveHydration = false;
+export const enableLazyElements = false;
+export const enableCache = false;
+export const disableJavaScriptURLs = false;
+export const disableModulePatternComponents = false;
+export const enableCreateEventHandleAPI = false;
+export const enableScopeAPI = false;
+export const warnAboutUnmockedScheduler = false;
+export const enableSuspenseCallback = false;
+export const enableComponentStackLocations = false;
+export const disableTextareaChildren = false;
 export const warnUnstableRenderSubtreeIntoContainer = false;
-
-export const enableDiscreteEventFlushingChange = true;
-
-// Enable forked reconciler. Piggy-backing on the "variant" global so that we
-// don't have to add another test dimension. The build system will compile this
-// to the correct value.
-export const enableNewReconciler = __VARIANT__;
-
+export const enableDiscreteEventFlushingChange = false;
+export const enableNewReconciler = false;
 export const enableRecursiveCommitTraversal = false;
 
 // Flow magic to verify the exports of this file match the original version.

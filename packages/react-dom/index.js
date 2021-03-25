@@ -10,22 +10,5 @@
 // Export all exports so that they're available in tests.
 // We can't use export * from in Flow for some reason.
 export {
-  createPortal,
-  unstable_batchedUpdates,
-  flushSync,
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
-  version,
-  findDOMNode,
-  hydrate,
   render,
-  unmountComponentAtNode,
-  createRoot,
-  createRoot as unstable_createRoot,
-  unstable_flushControlled,
-  unstable_scheduleHydration,
-  unstable_runWithPriority,
-  unstable_renderSubtreeIntoContainer,
-  unstable_createPortal,
-  unstable_createEventHandle,
-  unstable_isNewReconciler,
 } from './src/client/ReactDOM';
