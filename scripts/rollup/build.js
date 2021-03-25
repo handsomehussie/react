@@ -110,6 +110,8 @@ const closureOptions = {
   process_common_js_modules: false,
   rewrite_polyfills: false,
   inject_libraries: false,
+  formatting: 'PRETTY_PRINT',
+  debug: true,
 };
 
 // Non-ES2015 stuff applied before closure compiler.
