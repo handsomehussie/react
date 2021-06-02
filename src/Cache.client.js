@@ -22,6 +22,7 @@ export function useRefresh() {
 
 export function useServerResponse(location) {
   const key = JSON.stringify(location);
+  console.log('useServerResponse() "/react?location=' + encodeURIComponent(key) + '"')
   const cache = unstable_getCacheForType(createResponseCache);
   let response = cache.get(key);
   if (response) {
