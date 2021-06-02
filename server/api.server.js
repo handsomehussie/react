@@ -85,6 +85,7 @@ function sendResponse(req, res, redirectToId) {
   if (redirectToId) {
     location.selectedId = redirectToId;
   }
+  res.set('Access-Control-Allow-Origin', 'http://localhost:8080')
   res.set('X-Location', JSON.stringify(location));
   renderReactTree(res, {
     selectedId: location.selectedId,
