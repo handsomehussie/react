@@ -30,6 +30,7 @@ import {
   hasAlreadyLoadedHookNames,
   loadHookNames,
 } from 'react-devtools-shared/src/hookNamesCache';
+import {loadModule} from 'react-devtools-shared/src/dynamicRequireCache';
 import HookNamesContext from 'react-devtools-shared/src/devtools/views/Components/HookNamesContext';
 import {SettingsContext} from '../Settings/SettingsContext';
 
@@ -64,12 +65,9 @@ export type Props = {|
 
 export function InspectedElementContextController({children}: Props) {
   const {selectedElementID} = useContext(TreeStateContext);
-  const {
-    fetchFileWithCaching,
-    loadHookNames: loadHookNamesFunction,
-    prefetchSourceFiles,
-    purgeCachedMetadata,
-  } = useContext(HookNamesContext);
+  const {fetchFileWithCaching, loadHookNamesModuleLoaderFunction} = useContext(
+    HookNamesContext,
+  );
   const bridge = useContext(BridgeContext);
   const store = useContext(StoreContext);
   const {parseHookNames: parseHookNamesByDefault} = useContext(SettingsContext);
@@ -113,6 +111,9 @@ export function InspectedElementContextController({children}: Props) {
     setParseHookNames(parseHookNamesByDefault || alreadyLoadedHookNames);
   }
 
+  const prefetchSourceFilesRef = useRef(null);
+  const purgeCachedMetadataRef = useRef(null);
+
   // Don't load a stale element from the backend; it wastes bridge bandwidth.
   let hookNames: HookNames | null = null;
   let inspectedElement = null;
@@ -120,17 +121,28 @@ export function InspectedElementContextController({children}: Props) {
     inspectedElement = inspectElement(element, state.path, store, bridge);
 
     if (parseHookNames || alreadyLoadedHookNames) {
-      if (
-        inspectedElement !== null &&
-        inspectedElement.hooks !== null &&
-        loadHookNamesFunction !== null
-      ) {
-        hookNames = loadHookNames(
-          element,
-          inspectedElement.hooks,
-          loadHookNamesFunction,
-          fetchFileWithCaching,
-        );
+      if (typeof loadHookNamesModuleLoaderFunction === 'function') {
+        const {
+          parseHookNames: loadHookNamesFunction,
+          prefetchSourceFiles,
+          purgeCachedMetadata,
+        } = loadModule(loadHookNamesModuleLoaderFunction);
+
+        purgeCachedMetadataRef.current = purgeCachedMetadata;
+        prefetchSourceFilesRef.current = prefetchSourceFiles;
+
+        if (
+          inspectedElement !== null &&
+          inspectedElement.hooks !== null &&
+          loadHookNamesFunction !== null
+        ) {
+          hookNames = loadHookNames(
+            element,
+            inspectedElement.hooks,
+            loadHookNamesFunction,
+            fetchFileWithCaching,
+          );
+        }
       }
     }
   }
@@ -164,13 +176,15 @@ export function InspectedElementContextController({children}: Props) {
     ) {
       inspectedElementRef.current = inspectedElement;
 
+      const prefetchSourceFiles = prefetchSourceFilesRef.current;
       if (typeof prefetchSourceFiles === 'function') {
         prefetchSourceFiles(inspectedElement.hooks, fetchFileWithCaching);
       }
     }
-  }, [inspectedElement, prefetchSourceFiles]);
+  }, [inspectedElement]);
 
   useEffect(() => {
+    const purgeCachedMetadata = purgeCachedMetadataRef.current;
     if (typeof purgeCachedMetadata === 'function') {
       // When Fast Refresh updates a component, any cached AST metadata may be invalid.
       const fastRefreshScheduled = () => {

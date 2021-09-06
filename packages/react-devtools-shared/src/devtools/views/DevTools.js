@@ -52,10 +52,8 @@ export type BrowserTheme = 'dark' | 'light';
 export type TabID = 'components' | 'profiler';
 
 export type FetchFileWithCaching = (url: string) => Promise<string>;
-export type PrefetchSourceFiles = (
-  hooksTree: HooksTree,
-  fetchFileWithCaching: FetchFileWithCaching | null,
-) => void;
+// TODO Better Flow typing for module once this is in shared
+export type LoadHookNamesModuleLoaderFunction = () => Promise<mixed>;
 export type ViewElementSource = (
   id: number,
   inspectedElement: InspectedElement,
@@ -63,7 +61,6 @@ export type ViewElementSource = (
 export type LoadHookNamesFunction = (
   hooksTree: HooksTree,
 ) => Thenable<HookNames>;
-export type PurgeCachedHookNamesMetadata = () => void;
 export type ViewAttributeSource = (
   id: number,
   path: Array<string | number>,
@@ -107,9 +104,7 @@ export type Props = {|
   // and extracts hook "names" based on the variables the hook return values get assigned to.
   // Not every DevTools build can load source maps, so this property is optional.
   fetchFileWithCaching?: ?FetchFileWithCaching,
-  loadHookNames?: ?LoadHookNamesFunction,
-  prefetchSourceFiles?: ?PrefetchSourceFiles,
-  purgeCachedHookNamesMetadata?: ?PurgeCachedHookNamesMetadata,
+  loadHookNamesModuleLoaderFunction: LoadHookNamesModuleLoaderFunction,
 |};
 
 const componentsTab = {
@@ -135,11 +130,9 @@ export default function DevTools({
   defaultTab = 'components',
   enabledInspectedElementContextMenu = false,
   fetchFileWithCaching,
-  loadHookNames,
+  loadHookNamesModuleLoaderFunction,
   overrideTab,
   profilerPortalContainer,
-  prefetchSourceFiles,
-  purgeCachedHookNamesMetadata,
   showTabBar = false,
   store,
   warnIfLegacyBackendDetected = false,
@@ -202,16 +195,10 @@ export default function DevTools({
   const hookNamesContext = useMemo(
     () => ({
       fetchFileWithCaching: fetchFileWithCaching || null,
-      loadHookNames: loadHookNames || null,
-      prefetchSourceFiles: prefetchSourceFiles || null,
-      purgeCachedMetadata: purgeCachedHookNamesMetadata || null,
+      loadHookNamesModuleLoaderFunction:
+        loadHookNamesModuleLoaderFunction || null,
     }),
-    [
-      fetchFileWithCaching,
-      loadHookNames,
-      prefetchSourceFiles,
-      purgeCachedHookNamesMetadata,
-    ],
+    [fetchFileWithCaching, loadHookNamesModuleLoaderFunction],
   );
 
   const devToolsRef = useRef<HTMLElement | null>(null);

@@ -3,23 +3,18 @@
 import {createContext} from 'react';
 import type {
   FetchFileWithCaching,
-  LoadHookNamesFunction,
-  PrefetchSourceFiles,
-  PurgeCachedHookNamesMetadata,
+  LoadHookNamesModuleLoaderFunction,
 } from '../DevTools';
 
 export type Context = {
+  // TODO Move this function into its own, non-hooks-specific context once hooks code is in shared.
   fetchFileWithCaching: FetchFileWithCaching | null,
-  loadHookNames: LoadHookNamesFunction | null,
-  prefetchSourceFiles: PrefetchSourceFiles | null,
-  purgeCachedMetadata: PurgeCachedHookNamesMetadata | null,
+  loadHookNamesModuleLoaderFunction: LoadHookNamesModuleLoaderFunction | null,
 };
 
 const HookNamesContext = createContext<Context>({
   fetchFileWithCaching: null,
-  loadHookNames: null,
-  prefetchSourceFiles: null,
-  purgeCachedMetadata: null,
+  loadHookNamesModuleLoaderFunction: null,
 });
 HookNamesContext.displayName = 'HookNamesContext';
 

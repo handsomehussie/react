@@ -53,7 +53,7 @@ export function InspectedElementHooksTree({
 }: HooksTreeViewProps) {
   const {hooks, id} = inspectedElement;
 
-  const {loadHookNames: loadHookNamesFunction} = useContext(HookNamesContext);
+  const {loadHookNamesModuleLoaderFunction} = useContext(HookNamesContext);
 
   // Changing parseHookNames is done in a transition, because it suspends.
   // This value is done outside of the transition, so the UI toggle feels responsive.
@@ -85,7 +85,7 @@ export function InspectedElementHooksTree({
       <div className={styles.HooksTreeView}>
         <div className={styles.HeaderRow}>
           <div className={styles.Header}>hooks</div>
-          {loadHookNamesFunction !== null &&
+          {loadHookNamesModuleLoaderFunction !== null &&
             (!parseHookNames || hookParsingFailed) && (
               <Toggle
                 className={hookParsingFailed ? styles.ToggleError : null}

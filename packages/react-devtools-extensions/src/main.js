@@ -289,30 +289,29 @@ function createPanelIfReactLoaded() {
 
         root = createRoot(document.createElement('div'));
 
+        // TODO: Move this function into react-devtools-shared InspectedElementContext
+        // once named hooks code has been moved out of react-devtoos-extensions.
+        const loadHookNamesModuleLoaderFunction = () =>
+          import('./parseHookNames');
+
         render = (overrideTab = mostRecentOverrideTab) => {
           mostRecentOverrideTab = overrideTab;
-          import('./parseHookNames').then(
-            ({parseHookNames, prefetchSourceFiles, purgeCachedMetadata}) => {
-              root.render(
-                createElement(DevTools, {
-                  bridge,
-                  browserTheme: getBrowserTheme(),
-                  componentsPortalContainer,
-                  enabledInspectedElementContextMenu: true,
-                  fetchFileWithCaching,
-                  loadHookNames: parseHookNames,
-                  overrideTab,
-                  prefetchSourceFiles,
-                  profilerPortalContainer,
-                  purgeCachedHookNamesMetadata: purgeCachedMetadata,
-                  showTabBar: false,
-                  store,
-                  warnIfUnsupportedVersionDetected: true,
-                  viewAttributeSourceFunction,
-                  viewElementSourceFunction,
-                }),
-              );
-            },
+          root.render(
+            createElement(DevTools, {
+              bridge,
+              browserTheme: getBrowserTheme(),
+              componentsPortalContainer,
+              enabledInspectedElementContextMenu: true,
+              fetchFileWithCaching,
+              loadHookNamesModuleLoaderFunction,
+              overrideTab,
+              profilerPortalContainer,
+              showTabBar: false,
+              store,
+              warnIfUnsupportedVersionDetected: true,
+              viewAttributeSourceFunction,
+              viewElementSourceFunction,
+            }),
           );
         };
 
