@@ -27,7 +27,7 @@ import TabBar from './TabBar';
 import {SettingsContextController} from './Settings/SettingsContext';
 import {TreeContextController} from './Components/TreeContext';
 import ViewElementSourceContext from './Components/ViewElementSourceContext';
-import HookNamesContext from './Components/HookNamesContext';
+import FetchFileWithCachingContext from './Components/FetchFileWithCachingContext';
 import {ProfilerContextController} from './Profiler/ProfilerContext';
 import {SchedulingProfilerContextController} from 'react-devtools-scheduling-profiler/src/SchedulingProfilerContext';
 import {ModalDialogContextController} from './ModalDialog';
@@ -44,6 +44,7 @@ import './root.css';
 
 import type {HooksTree} from 'react-debug-tools/src/ReactDebugHooks';
 import type {InspectedElement} from 'react-devtools-shared/src/devtools/views/Components/types';
+import type {FetchFileWithCaching} from './Components/FetchFileWithCachingContext';
 import type {FrontendBridge} from 'react-devtools-shared/src/bridge';
 import type {HookNames} from 'react-devtools-shared/src/types';
 import type {Thenable} from '../cache';
@@ -51,9 +52,6 @@ import type {Thenable} from '../cache';
 export type BrowserTheme = 'dark' | 'light';
 export type TabID = 'components' | 'profiler';
 
-export type FetchFileWithCaching = (url: string) => Promise<string>;
-// TODO Better Flow typing for module once this is in shared
-export type LoadHookNamesModuleLoaderFunction = () => Promise<mixed>;
 export type ViewElementSource = (
   id: number,
   inspectedElement: InspectedElement,
@@ -104,7 +102,6 @@ export type Props = {|
   // and extracts hook "names" based on the variables the hook return values get assigned to.
   // Not every DevTools build can load source maps, so this property is optional.
   fetchFileWithCaching?: ?FetchFileWithCaching,
-  loadHookNamesModuleLoaderFunction: LoadHookNamesModuleLoaderFunction,
 |};
 
 const componentsTab = {
@@ -130,7 +127,6 @@ export default function DevTools({
   defaultTab = 'components',
   enabledInspectedElementContextMenu = false,
   fetchFileWithCaching,
-  loadHookNamesModuleLoaderFunction,
   overrideTab,
   profilerPortalContainer,
   showTabBar = false,
@@ -192,15 +188,6 @@ export default function DevTools({
     [enabledInspectedElementContextMenu, viewAttributeSourceFunction],
   );
 
-  const hookNamesContext = useMemo(
-    () => ({
-      fetchFileWithCaching: fetchFileWithCaching || null,
-      loadHookNamesModuleLoaderFunction:
-        loadHookNamesModuleLoaderFunction || null,
-    }),
-    [fetchFileWithCaching, loadHookNamesModuleLoaderFunction],
-  );
-
   const devToolsRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -257,7 +244,8 @@ export default function DevTools({
                 componentsPortalContainer={componentsPortalContainer}
                 profilerPortalContainer={profilerPortalContainer}>
                 <ViewElementSourceContext.Provider value={viewElementSource}>
-                  <HookNamesContext.Provider value={hookNamesContext}>
+                  <FetchFileWithCachingContext.Provider
+                    value={fetchFileWithCaching || null}>
                     <TreeContextController>
                       <ProfilerContextController>
                         <SchedulingProfilerContextController>
@@ -301,7 +289,7 @@ export default function DevTools({
                         </SchedulingProfilerContextController>
                       </ProfilerContextController>
                     </TreeContextController>
-                  </HookNamesContext.Provider>
+                  </FetchFileWithCachingContext.Provider>
                 </ViewElementSourceContext.Provider>
               </SettingsContextController>
               <UnsupportedBridgeProtocolDialog />

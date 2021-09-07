@@ -108,17 +108,23 @@ const config = {
 };
 
 if (TARGET === 'local') {
+  // Local dev server build.
   config.devServer = {
     hot: true,
     port: 8080,
     clientLogLevel: 'warning',
-    publicPath: '/dist/',
     stats: 'errors-only',
+    publicPath: '/dist/',
+    filename: '[name].js',
+    chunkFilename: '[name].chunk.js',
   };
 } else {
+  // Static build to deploy somewhere else.
   config.output = {
     path: resolve(__dirname, 'dist'),
+    publicPath: '/dist/',
     filename: '[name].js',
+    chunkFilename: '[name].chunk.js',
   };
 }
 

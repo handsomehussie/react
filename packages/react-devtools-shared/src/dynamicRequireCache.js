@@ -115,13 +115,14 @@ export function loadModule(moduleLoaderFunction: ModuleLoaderFunction): Module {
         if (__DEBUG__) {
           console.log(
             `[dynamicRequireCache] loadModule("${moduleLoaderFunction.name}") catch()`,
-            error,
           );
         }
 
         if (didTimeout) {
           return;
         }
+
+        console.log(error);
 
         const thrownRecord = ((newRecord: any): RejectedRecord);
         thrownRecord.status = Rejected;

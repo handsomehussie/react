@@ -289,11 +289,6 @@ function createPanelIfReactLoaded() {
 
         root = createRoot(document.createElement('div'));
 
-        // TODO: Move this function into react-devtools-shared InspectedElementContext
-        // once named hooks code has been moved out of react-devtoos-extensions.
-        const loadHookNamesModuleLoaderFunction = () =>
-          import('./parseHookNames');
-
         render = (overrideTab = mostRecentOverrideTab) => {
           mostRecentOverrideTab = overrideTab;
           root.render(
@@ -303,7 +298,6 @@ function createPanelIfReactLoaded() {
               componentsPortalContainer,
               enabledInspectedElementContextMenu: true,
               fetchFileWithCaching,
-              loadHookNamesModuleLoaderFunction,
               overrideTab,
               profilerPortalContainer,
               showTabBar: false,
