@@ -830,6 +830,7 @@ export function attach(
       state,
       errors,
       warnings,
+      unsupportedBuiltInHooks: null,
 
       // List of owners
       owners,

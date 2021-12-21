@@ -208,6 +208,7 @@ export function convertInspectedElementBackendToFrontend(
     owners,
     context,
     hooks,
+    unsupportedBuiltInHooks,
     plugins,
     props,
     rendererPackageName,
@@ -258,6 +259,7 @@ export function convertInspectedElementBackendToFrontend(
     hooks: hydrateHelper(hooks),
     props: hydrateHelper(props),
     state: hydrateHelper(state),
+    unsupportedBuiltInHooks,
     errors,
     warnings,
   };

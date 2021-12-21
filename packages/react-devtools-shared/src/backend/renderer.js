@@ -149,6 +149,10 @@ const getCurrentTime =
     ? () => performance.now()
     : () => Date.now();
 
+class TransientError extends Error {
+  unsupportedBuiltInHooks = null;
+}
+
 export function getInternalReactConstants(
   version: string,
 ): {|
@@ -3098,7 +3102,10 @@ export function attach(
     return null;
   }
 
-  function inspectElementRaw(id: number): InspectedElement | null {
+  function inspectElementRaw(
+    id: number,
+    unsupportedBuiltInHooks?: Array<string> | null = null,
+  ): InspectedElement | null {
     const fiber = findCurrentFiberUsingSlowPathById(id);
     if (fiber == null) {
       return null;
@@ -3211,7 +3218,9 @@ export function attach(
       tag === SuspenseComponent && memoizedState !== null;
 
     let hooks = null;
-    if (usesHooks) {
+    console.info('usesHooks:', usesHooks);
+    console.info('unsupportedBuiltInHooks:', unsupportedBuiltInHooks);
+    if (usesHooks && unsupportedBuiltInHooks === null) {
       const originalConsoleMethods = {};
 
       // Temporarily disable all console logging before re-running the hook.
@@ -3229,6 +3238,25 @@ export function attach(
           (renderer.currentDispatcherRef: any),
           true, // Include source location info for hooks
         );
+      } catch (error) {
+        console.info('caught error:', error);
+        const match = error.message.match(
+          /dispatcher\.(use[a-zA-Z]+) is not a function/,
+        );
+        console.info('-> match:', match);
+        if (match) {
+          const transientError = new TransientError(error.message);
+          transientError.stack = error.stack;
+          transientError.unsupportedBuiltInHooks = [match[1]];
+          console.info(
+            '-> unsupportedBuiltInHooks:',
+            transientError.unsupportedBuiltInHooks,
+          );
+
+          throw transientError;
+        }
+
+        throw error;
       } finally {
         // Restore original console functionality.
         for (const method in originalConsoleMethods) {
@@ -3327,6 +3355,8 @@ export function attach(
       state: showState ? memoizedState : null,
       errors: Array.from(errors.entries()),
       warnings: Array.from(warnings.entries()),
+
+      unsupportedBuiltInHooks,
 
       // List of owners
       owners,
@@ -3507,6 +3537,7 @@ export function attach(
     id: number,
     path: Array<string | number> | null,
     forceFullData: boolean,
+    unsupportedBuiltInHooks: Array<string> | null = null,
   ): InspectedElementPayload {
     if (path !== null) {
       mergeInspectedPaths(path);
@@ -3553,9 +3584,24 @@ export function attach(
     hasElementUpdatedSinceLastInspected = false;
 
     try {
-      mostRecentlyInspectedElement = inspectElementRaw(id);
+      mostRecentlyInspectedElement = inspectElementRaw(
+        id,
+        unsupportedBuiltInHooks,
+      );
     } catch (error) {
       console.error('Error inspecting element.\n\n', error);
+
+      console.info('inspectElement() catch', {unsupportedBuiltInHooks, error});
+      if (unsupportedBuiltInHooks === null && error instanceof TransientError) {
+        console.info('-> inspectElement()');
+        return inspectElement(
+          requestID,
+          id,
+          path,
+          forceFullData,
+          error.unsupportedBuiltInHooks,
+        );
+      }
 
       return {
         type: 'error',

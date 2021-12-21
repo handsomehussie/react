@@ -251,6 +251,7 @@ export type InspectedElement = {|
   key: number | string | null,
   errors: Array<[string, number]>,
   warnings: Array<[string, number]>,
+  unsupportedBuiltInHooks: Array<string> | null,
 
   // List of owners
   owners: Array<SerializedElement> | null,

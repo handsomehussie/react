@@ -66,6 +66,7 @@ export default function InspectedElementView({
     rendererVersion,
     rootType,
     source,
+    unsupportedBuiltInHooks,
   } = inspectedElement;
 
   const bridge = useContext(BridgeContext);
@@ -108,6 +109,17 @@ export default function InspectedElementView({
           inspectedElement={inspectedElement}
           store={store}
         />
+
+        {unsupportedBuiltInHooks && (
+          <div className={styles.UnsupportedHooksErrorPane}>
+            <div className={styles.UnsupportedHooksHeaderRow}>
+              <div className={styles.UnsupportedHooksHeader}>hooks</div>
+            </div>
+            <div className={styles.UnsupportedHooksMessage}>
+              Built-in hook {unsupportedBuiltInHooks} not yet supported.
+            </div>
+          </div>
+        )}
 
         <InspectedElementHooksTree
           bridge={bridge}
