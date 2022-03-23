@@ -10,10 +10,12 @@
 import * as React from 'react';
 import {Component, Suspense} from 'react';
 import Store from 'react-devtools-shared/src/devtools/store';
+import BridgeProtocolView from './BridgeProtocolView';
 import ErrorView from './ErrorView';
 import SearchingGitHubIssues from './SearchingGitHubIssues';
 import SuspendingErrorView from './SuspendingErrorView';
 import TimeoutView from './TimeoutView';
+import BridgeProtocolError from 'react-devtools-shared/src/BridgeProtocolError';
 import TimeoutError from 'react-devtools-shared/src/TimeoutError';
 import {logEvent} from 'react-devtools-shared/src/Logger';
 
@@ -30,6 +32,7 @@ type State = {|
   componentStack: string | null,
   errorMessage: string | null,
   hasError: boolean,
+  isBridgeProtocol: boolean,
   isTimeout: boolean,
 |};
 
@@ -39,6 +42,7 @@ const InitialState: State = {
   componentStack: null,
   errorMessage: null,
   hasError: false,
+  isBridgeProtocol: false,
   isTimeout: false,
 };
 
@@ -54,6 +58,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         : null;
 
     const isTimeout = error instanceof TimeoutError;
+    const isBridgeProtocol = error instanceof BridgeProtocolError;
 
     const callStack =
       typeof error === 'object' &&
@@ -69,6 +74,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       callStack,
       errorMessage,
       hasError: true,
+      isBridgeProtocol,
       isTimeout,
     };
   }
@@ -102,6 +108,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       componentStack,
       errorMessage,
       hasError,
+      isBridgeProtocol,
       isTimeout,
     } = this.state;
 
@@ -117,6 +124,14 @@ export default class ErrorBoundary extends Component<Props, State> {
             errorMessage={errorMessage}
           />
         );
+      } else if (isBridgeProtocol) {
+        return (
+          <BridgeProtocolView
+            callStack={callStack}
+            componentStack={componentStack}
+            errorMessage={errorMessage}
+          />
+        );
       } else {
         return (
           <ErrorView
@@ -125,7 +140,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             dismissError={
               canDismissProp || canDismissState ? this._dismissError : null
             }
-            errorMessage={errorMessage}>
+            errorMessage={errorMessage}
+            isBridgeProtocol={isBridgeProtocol}>
             <Suspense fallback={<SearchingGitHubIssues />}>
               <SuspendingErrorView
                 callStack={callStack}

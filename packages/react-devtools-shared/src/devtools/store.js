@@ -44,6 +44,7 @@ import type {
   FrontendBridge,
   BridgeProtocol,
 } from 'react-devtools-shared/src/bridge';
+import BridgeProtocolError from 'react-devtools-shared/src/BridgeProtocolError';
 
 const debug = (methodName, ...args) => {
   if (__DEBUG__) {
@@ -1252,7 +1253,9 @@ export default class Store extends EventEmitter<{|
           break;
         default:
           this._throwAndEmitError(
-            Error(`Unsupported Bridge operation "${operation}"`),
+            new BridgeProtocolError(
+              `Unsupported Bridge operation "${operation}"`,
+            ),
           );
       }
     }
