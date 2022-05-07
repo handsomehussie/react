@@ -17,6 +17,7 @@ import Toggle from './Toggle';
 import ErrorBoundaries from './ErrorBoundaries';
 import PartiallyStrictApp from './PartiallyStrictApp';
 import SuspenseTree from './SuspenseTree';
+import Replay from './Replay';
 import {ignoreErrors, ignoreLogs, ignoreWarnings} from './console';
 
 import './styles.css';
@@ -78,6 +79,7 @@ function mountLegacyApp(App) {
 }
 
 function mountTestApp() {
+  mountApp(Replay);
   mountStrictApp(ToDoList);
   mountApp(InspectableElements);
   mountApp(Hydration);

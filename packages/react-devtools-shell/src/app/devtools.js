@@ -29,7 +29,14 @@ const DevTools = initializeFrontend(contentWindow);
 
 // Activate the backend only once the DevTools frontend Store has been initialized.
 // Otherwise the Store may miss important initial tree op codes.
-activateBackend(contentWindow);
+const {
+  getCurrentComponentStack,
+  getCurrentlyRenderingComponent,
+} = activateBackend(contentWindow);
+
+// TODO [bvaughn] Testing purposes only
+window.getCurrentComponentStack = getCurrentComponentStack;
+window.getCurrentlyRenderingComponent = getCurrentlyRenderingComponent;
 
 const container = ((document.getElementById('devtools'): any): HTMLElement);
 

@@ -121,6 +121,10 @@ import type {
   ElementType,
   Plugins,
 } from 'react-devtools-shared/src/types';
+import type {
+  ExternalComponentDescription,
+  ExternalComponentStack,
+} from 'react-devtools-shared/src/backend/types';
 
 type getDisplayNameForFiberType = (fiber: Fiber) => string | null;
 type getTypeSymbolType = (type: any) => Symbol | number;
@@ -4479,6 +4483,89 @@ export function attach(
     traceUpdatesEnabled = isEnabled;
   }
 
+  // Experimental backend-only APIs
+
+  function getCurrentComponentStack(): ExternalComponentStack | null {
+    const getCurrentFiber = renderer.getCurrentFiber;
+    if (typeof getCurrentFiber === 'function') {
+      // TODO [bvaughn] This API only works in DEV; is there a way to get this info in production?
+      const fiber = getCurrentFiber();
+      if (fiber) {
+        const componentStack: ExternalComponentStack = [];
+
+        let nextFiber = fiber;
+        while (nextFiber) {
+          const displayName = getDisplayNameForFiber(nextFiber);
+          const type = getElementTypeForFiber(nextFiber);
+
+          // We compare currentFiber and fiber because we can't check PerformedWork yet for the current fiber.
+          // This value doesn't get set by React until after the component has finished rendering.
+          // Technically we don't yet know if the fiber that's currently being rendered bails out or not.
+          const prevFiber = nextFiber.alternate;
+          const didBailOut =
+            nextFiber !== fiber &&
+            prevFiber !== null &&
+            !didFiberRender(prevFiber, nextFiber);
+
+          switch (type) {
+            case ElementTypeClass:
+            case ElementTypeFunction:
+            case ElementTypeForwardRef: {
+              componentStack.push({
+                didBailOut,
+                displayName,
+                type: nextFiber.type,
+              });
+              break;
+            }
+            default: {
+              componentStack.push({
+                didBailOut,
+                displayName,
+                type: null,
+              });
+              break;
+            }
+          }
+
+          nextFiber = nextFiber.return;
+        }
+
+        return componentStack;
+      }
+    }
+    return null;
+  }
+
+  function getCurrentlyRenderingComponent(): ExternalComponentDescription | null {
+    const getCurrentFiber = renderer.getCurrentFiber;
+    if (typeof getCurrentFiber === 'function') {
+      // TODO [bvaughn] This API only works in DEV; is there a way to get this info in production?
+      const fiber = getCurrentFiber();
+      if (fiber) {
+        const type = getElementTypeForFiber(fiber);
+        switch (type) {
+          case ElementTypeClass:
+          case ElementTypeFunction:
+          case ElementTypeForwardRef: {
+            return {
+              displayName: getDisplayNameForFiber(fiber),
+              type: fiber.type,
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function isCurrentlyRendering(): boolean {
+    const currentDispatcherRef = renderer.currentDispatcherRef;
+    return (
+      currentDispatcherRef != null && currentDispatcherRef.current !== null
+    );
+  }
+
   return {
     cleanup,
     clearErrorsAndWarnings,
@@ -4515,5 +4602,10 @@ export function attach(
     storeAsGlobal,
     unpatchConsoleForStrictMode,
     updateComponentFilters,
+
+    // Experimental backend-only APIs
+    getCurrentComponentStack,
+    getCurrentlyRenderingComponent,
+    isCurrentlyRendering,
   };
 }

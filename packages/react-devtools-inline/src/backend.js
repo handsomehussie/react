@@ -8,8 +8,16 @@ import setupNativeStyleEditor from 'react-devtools-shared/src/backend/NativeStyl
 
 import type {BackendBridge} from 'react-devtools-shared/src/bridge';
 import type {Wall} from 'react-devtools-shared/src/types';
+import type {
+  ExternalComponentStack,
+  ExternalComponentDescription,
+} from 'react-devtools-shared/src/backend/types';
 
-function startActivation(contentWindow: window, bridge: BackendBridge) {
+function startActivation(
+  contentWindow: window,
+  bridge: BackendBridge,
+  apiRefs,
+) {
   const onSavedPreferences = data => {
     // This is the only message we're listening for,
     // so it's safe to cleanup after we've received it.
@@ -43,7 +51,7 @@ function startActivation(contentWindow: window, bridge: BackendBridge) {
       window.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = hideConsoleLogsInStrictMode;
     }
 
-    finishActivation(contentWindow, bridge);
+    finishActivation(contentWindow, bridge, apiRefs);
   };
 
   bridge.addListener('savedPreferences', onSavedPreferences);
@@ -55,8 +63,17 @@ function startActivation(contentWindow: window, bridge: BackendBridge) {
   bridge.send('getSavedPreferences');
 }
 
-function finishActivation(contentWindow: window, bridge: BackendBridge) {
+function finishActivation(
+  contentWindow: window,
+  bridge: BackendBridge,
+  apiRefs,
+) {
   const agent = new Agent(bridge);
+
+  // Fill in API methods by forwarding them to the Agent.
+  apiRefs.getCurrentComponentStack = agent.getCurrentComponentStack;
+  apiRefs.getCurrentlyRenderingComponent = agent.getCurrentlyRenderingComponent;
+  apiRefs.isCurrentlyRendering = agent.isCurrentlyRendering;
 
   const hook = contentWindow.__REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (hook) {
@@ -74,6 +91,7 @@ function finishActivation(contentWindow: window, bridge: BackendBridge) {
   }
 }
 
+// TODO [bvaughn] Flow types for return API
 export function activate(
   contentWindow: window,
   {
@@ -81,12 +99,35 @@ export function activate(
   }: {|
     bridge?: BackendBridge,
   |} = {},
-): void {
+): {|
+  getCurrentComponentStack: () => ExternalComponentStack | null,
+  getCurrentlyRenderingComponent: () => ExternalComponentDescription | null,
+  isCurrentlyRendering: () => boolean,
+|} {
   if (bridge == null) {
     bridge = createBridge(contentWindow);
   }
 
-  startActivation(contentWindow, bridge);
+  const apiRefs = {
+    getCurrentComponentStack: () => null,
+    getCurrentlyRenderingComponent: () => null,
+    isCurrentlyRendering: () => false,
+  };
+
+  startActivation(contentWindow, bridge, apiRefs);
+
+  // This ref-like pattern enables us to also support destructuring.
+  return {
+    getCurrentComponentStack: () => {
+      return apiRefs.getCurrentComponentStack();
+    },
+    getCurrentlyRenderingComponent: () => {
+      return apiRefs.getCurrentlyRenderingComponent();
+    },
+    isCurrentlyRendering: () => {
+      return apiRefs.isCurrentlyRendering();
+    },
+  };
 }
 
 export function createBridge(

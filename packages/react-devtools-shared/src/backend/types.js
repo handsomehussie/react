@@ -335,6 +335,25 @@ export type InstanceAndStyle = {|
 
 type Type = 'props' | 'hooks' | 'state' | 'context';
 
+export type ExternalComponentDescription = {|
+  // User-friendly display name (e.g. "AdminPanel", "Suspense", "Fragment")
+  displayName: string | null,
+
+  // If this node in the component stack is user code, this will be a class or function.
+  // Otherwise it will be null for built-ins (e.g. Fragment, Suspense).
+  type: React$Node | null,
+|};
+
+export type ExternalComponentStack = Array<{|
+  ...ExternalComponentDescription,
+
+  // False if this component was rendered as part of the current update;
+  // true if the component "bailed out" (memoized).
+  // This value will always be false for the currently rendering fiber,
+  // because React won't determine if it bails out until it's done rendering.
+  didBailOut: boolean,
+|}>;
+
 export type RendererInterface = {
   cleanup: () => void,
   clearErrorsAndWarnings: () => void,
@@ -400,6 +419,12 @@ export type RendererInterface = {
   ) => void,
   unpatchConsoleForStrictMode: () => void,
   updateComponentFilters: (componentFilters: Array<ComponentFilter>) => void,
+
+  // Experimental backend-only APIs
+
+  getCurrentComponentStack: () => ExternalComponentStack | null,
+  getCurrentlyRenderingComponent: () => ExternalComponentDescription | null,
+  isCurrentlyRendering: () => boolean,
 
   // Timeline profiler interface
 

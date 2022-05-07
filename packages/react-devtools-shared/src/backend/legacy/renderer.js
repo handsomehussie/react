@@ -1084,6 +1084,22 @@ export function attach(
 
   function unpatchConsoleForStrictMode() {}
 
+  // Experimental backend-only APIs
+  function getCurrentComponentStack() {
+    console.warn('getCurrentComponentStack not supported by this renderer');
+    return null;
+  }
+  function getCurrentlyRenderingComponent() {
+    console.warn(
+      'getCurrentlyRenderingComponent not supported by this renderer',
+    );
+    return null;
+  }
+  function isCurrentlyRendering() {
+    console.warn('isCurrentlyRendering not supported by this renderer');
+    return false;
+  }
+
   return {
     clearErrorsAndWarnings,
     clearErrorsForFiberID,
@@ -1123,5 +1139,10 @@ export function attach(
     storeAsGlobal,
     unpatchConsoleForStrictMode,
     updateComponentFilters,
+
+    // Experimental backend-only APIs
+    getCurrentComponentStack,
+    getCurrentlyRenderingComponent,
+    isCurrentlyRendering,
   };
 }

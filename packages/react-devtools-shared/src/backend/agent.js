@@ -795,4 +795,37 @@ export default class Agent extends EventEmitter<{|
       sessionStorageRemoveItem(SESSION_STORAGE_LAST_SELECTION_KEY);
     }
   }, 1000);
+
+  // Experimental backend-only APIs
+
+  _getActiveRendererInterface(): RendererInterface | null {
+    for (const rendererID in this._rendererInterfaces) {
+      const renderer = ((this._rendererInterfaces[
+        (rendererID: any)
+      ]: any): RendererInterface);
+      if (renderer.isCurrentlyRendering()) {
+        return renderer;
+      }
+    }
+    return null;
+  }
+
+  getCurrentComponentStack = () => {
+    const rendererInterface = this._getActiveRendererInterface();
+    return rendererInterface
+      ? rendererInterface.getCurrentComponentStack()
+      : null;
+  };
+
+  getCurrentlyRenderingComponent = () => {
+    const rendererInterface = this._getActiveRendererInterface();
+    return rendererInterface
+      ? rendererInterface.getCurrentlyRenderingComponent()
+      : null;
+  };
+
+  isCurrentlyRendering = () => {
+    const rendererInterface = this._getActiveRendererInterface();
+    return rendererInterface ? rendererInterface.isCurrentlyRendering() : false;
+  };
 }
